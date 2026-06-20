@@ -18,6 +18,9 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
         }
+        #logo-shield, #logo-wifi-wave-1, #logo-wifi-wave-2, #logo-wifi-dot {
+            transition: stroke 0.5s ease, fill 0.5s ease;
+        }
     </style>
 </head>
 <body class="bg-radial from-slate-950 via-slate-900 to-zinc-950 text-slate-100 min-h-screen flex items-center justify-center p-4 selection:bg-indigo-500">
@@ -141,6 +144,25 @@
                 <div id="extension-status" class="text-[10px] font-semibold"></div>
             </div>
             
+            <!-- Premium Dynamic Logo Header -->
+            <div class="mb-6 flex justify-center">
+                <svg id="app-logo" class="w-full max-w-[190px] h-10 transition-all duration-500" viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="text-grad-safe" x1="0" y1="0" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="100%" stop-color="#94a3b8"/>
+                        </linearGradient>
+                    </defs>
+                    <g id="logo-icon-group" transform="translate(6, 6) scale(1.2)">
+                        <path id="logo-shield" d="M12 2L3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5l-9-3z" stroke="#22d3ee" stroke-width="1.8" stroke-linejoin="round" fill="rgba(34, 211, 238, 0.05)" />
+                        <path id="logo-wifi-wave-1" d="M9.5 13.5a3.5 3.5 0 0 1 5 0" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" />
+                        <path id="logo-wifi-wave-2" d="M7 11a7 7 0 0 1 10 0" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" />
+                        <circle id="logo-wifi-dot" cx="12" cy="16.5" r="1" fill="#22d3ee" />
+                    </g>
+                    <text x="44" y="27" font-family="'Outfit', sans-serif" font-weight="900" font-size="22" fill="url(#text-grad-safe)" letter-spacing="-0.5">Whonmywifi</text>
+                </svg>
+            </div>
+            
             <div id="status-ring" class="relative flex items-center justify-center mb-6">
                 <div id="status-icon-container" class="w-28 h-28 rounded-full flex items-center justify-center text-slate-400">
                     </div>
@@ -248,6 +270,7 @@
         });
 
         async function runDiagnosticSequence() {
+            updateLogoVerdict(null); // Reset logo to pulsing cyan scanning state
             // Clear previous anomalies
             const zone = document.getElementById('anomaly-zone');
             zone.classList.add('hidden');
@@ -414,7 +437,40 @@
             zone.querySelector('ul').appendChild(li);
         }
 
+        function updateLogoVerdict(isSafe) {
+            const shield = document.getElementById('logo-shield');
+            const wave1 = document.getElementById('logo-wifi-wave-1');
+            const wave2 = document.getElementById('logo-wifi-wave-2');
+            const dot = document.getElementById('logo-wifi-dot');
+            
+            if (!shield || !wave1 || !wave2 || !dot) return;
+            
+            if (isSafe === null) {
+                const color = '#22d3ee';
+                shield.setAttribute('stroke', color);
+                shield.setAttribute('fill', 'rgba(34, 211, 238, 0.05)');
+                wave1.setAttribute('stroke', color);
+                wave2.setAttribute('stroke', color);
+                dot.setAttribute('fill', color);
+            } else if (isSafe) {
+                const color = '#10b981';
+                shield.setAttribute('stroke', color);
+                shield.setAttribute('fill', 'rgba(16, 185, 129, 0.05)');
+                wave1.setAttribute('stroke', color);
+                wave2.setAttribute('stroke', color);
+                dot.setAttribute('fill', color);
+            } else {
+                const color = '#f43f5e';
+                shield.setAttribute('stroke', color);
+                shield.setAttribute('fill', 'rgba(244, 63, 94, 0.05)');
+                wave1.setAttribute('stroke', color);
+                wave2.setAttribute('stroke', color);
+                dot.setAttribute('fill', color);
+            }
+        }
+
         function setVerdict(isSafe) {
+            updateLogoVerdict(isSafe); // Transition logo color based on overall verdict
             const iconBox = document.getElementById('status-icon-container');
             const title = document.getElementById('status-title');
             const desc = document.getElementById('status-desc');
