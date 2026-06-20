@@ -218,6 +218,39 @@
             <h3 class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">⚠️ Anomalies Encountered</h3>
             <ul class="text-xs text-rose-300/80 space-y-1 list-disc pl-4"></ul>
         </div>
+
+        <!-- Dynamic Security Mitigation & Monetization Card (VPN / Premium Upgrade) -->
+        <div id="mitigation-card" class="hidden mt-4 p-4 rounded-2xl bg-emerald-950/10 border border-emerald-500/20 text-left space-y-3 shadow-lg">
+            <div class="flex items-center justify-between">
+                <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <span>🛡️</span> Security Recommendation
+                </h4>
+                <span id="mitigation-price-badge" class="text-[9px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 uppercase">Affiliate Offer</span>
+            </div>
+            <p id="mitigation-text" class="text-[11px] text-slate-300 leading-relaxed">
+                Your current network path is clear, but public Wi-Fi remains vulnerable to sniffers. Secure your active session with an encrypted tunnel.
+            </p>
+            <a id="mitigation-link" href="https://your-vpn-affiliate-link.com" target="_blank" rel="noopener noreferrer" class="block w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow-md transition-all text-center transform active:scale-95 cursor-pointer">
+                🔒 Encrypt Connection Now
+            </a>
+        </div>
+
+        <!-- Direct-Sold Sponsor Banner Slot (Groundwork) -->
+        <div id="sponsor-banner" class="mt-6 pt-4 border-t border-slate-900/60 flex flex-col items-center text-center">
+            <span class="text-[9px] uppercase tracking-widest text-slate-500 font-bold mb-2.5">SPONSOR ADVERTISEMENT</span>
+            <a href="https://your-sponsor-link-placeholder.com" target="_blank" rel="noopener noreferrer" class="group flex items-center justify-between w-full p-3.5 rounded-2xl bg-cyan-950/10 hover:bg-cyan-950/20 border border-slate-800 hover:border-cyan-500/20 transition-all duration-300">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-105 transition-transform">
+                        🔑
+                    </div>
+                    <div class="text-left">
+                        <p class="text-xs font-bold text-slate-200">Bitwarden Password Manager</p>
+                        <p class="text-[10px] text-slate-400">Secure credentials and keys on any network.</p>
+                    </div>
+                </div>
+                <span class="text-xs text-cyan-400 font-bold group-hover:translate-x-1 transition-transform">Get →</span>
+            </a>
+        </div>
     </div>
 
     <script>
@@ -495,18 +528,46 @@
             const title = document.getElementById('status-title');
             const desc = document.getElementById('status-desc');
             
+            const mitigationCard = document.getElementById('mitigation-card');
+            const mitigationText = document.getElementById('mitigation-text');
+            const mitigationBadge = document.getElementById('mitigation-price-badge');
+            const mitigationLink = document.getElementById('mitigation-link');
+            
             if (isSafe) {
                 iconBox.className = "w-28 h-28 rounded-full bg-emerald-500/10 border border-emerald-500 flex items-center justify-center text-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.15)]";
                 iconBox.innerHTML = `<svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>`;
                 title.textContent = "CONNECTION CLEAN";
                 title.className = "text-2xl font-black tracking-tight text-emerald-400 mb-1";
                 desc.textContent = "No routing anomalies, TLS modifications, or diagnostic warnings found.";
+                
+                // Show Freemium Companion Shield Upgrade Offer
+                const isExtensionLinked = document.documentElement.hasAttribute('data-whonmywifi-extension-installed') && !new URLSearchParams(window.location.search).has('force-standalone');
+                if (!isExtensionLinked) {
+                    mitigationCard.className = "mt-4 p-4 rounded-2xl bg-emerald-950/10 border border-emerald-500/20 text-left space-y-3 shadow-lg block";
+                    mitigationBadge.textContent = "Premium Core";
+                    mitigationBadge.className = "text-[9px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 uppercase";
+                    mitigationText.innerHTML = "Standalone scan clean, but public routers remain insecure. Link the <strong>Whonmywifi Companion Shield</strong> for real-time, automated background protection.";
+                    mitigationLink.textContent = "📥 Enable Companion Shield ($1.99/mo)";
+                    mitigationLink.href = "https://whonmywifi.com/upgrade-companion-placeholder";
+                    mitigationLink.className = "block w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow-md transition-all text-center transform active:scale-95 cursor-pointer";
+                } else {
+                    mitigationCard.className = "hidden"; // Hide if premium extension is already linked
+                }
             } else {
                 iconBox.className = "w-28 h-28 rounded-full bg-rose-500/10 border border-rose-500 flex items-center justify-center text-rose-500 shadow-[0_0_40px_rgba(239,68,68,0.2)]";
                 iconBox.innerHTML = `<svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
                 title.textContent = "RED ALERT NOTICE";
                 title.className = "text-2xl font-black tracking-tight text-rose-500 mb-1";
                 desc.textContent = "Diagnostic scan has flagged potential routing proxy or hardware anomalies.";
+                
+                // Show VPN Affiliate Threat Mitigation Card
+                mitigationCard.className = "mt-4 p-4 rounded-2xl bg-rose-950/20 border border-rose-500/20 text-left space-y-3 shadow-lg block";
+                mitigationBadge.textContent = "Critical Threat Shield";
+                mitigationBadge.className = "text-[9px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30 uppercase";
+                mitigationText.innerHTML = "<strong>Security Warning:</strong> Potential active network routing or hardware timing anomalies detected! Protect your active session data now by encrypting your traffic.";
+                mitigationLink.textContent = "🔒 Secure Traffic with ProtonVPN (70% Off)";
+                mitigationLink.href = "https://your-vpn-affiliate-link-placeholder.com";
+                mitigationLink.className = "block w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs rounded-xl shadow-md transition-all text-center transform active:scale-95 cursor-pointer";
             }
         }
     </script>
