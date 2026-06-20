@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Whonmywifi Companion Shield",
+  "version": "1.0.0",
+  "description": "Companion extension core framework for advanced localized network metrics.",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "https://*.vercel.app/*",
+        "https://*.netlify.app/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

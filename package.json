@@ -1,0 +1,7 @@
+{
+  "name": "whonmywifi",
+  "version": "1.0.0",
+  "description": "Premium Who-On-My-Wi-Fi scanner and safety diagnostics.",
+  "main": "api/telemetry.js",
+  "dependencies": {}
+}
