@@ -235,8 +235,8 @@
             </a>
         </div>
 
-        <!-- Direct-Sold Sponsor Banner Slot (Groundwork) -->
-        <div id="sponsor-banner" class="mt-6 pt-4 border-t border-slate-900/60 flex flex-col items-center text-center">
+        <!-- Direct-Sold Sponsor Banner Slot (Groundwork - Hidden for future activation) -->
+        <div id="sponsor-banner" class="hidden mt-6 pt-4 border-t border-slate-900/60 flex flex-col items-center text-center">
             <span class="text-[9px] uppercase tracking-widest text-slate-500 font-bold mb-2.5">SPONSOR ADVERTISEMENT</span>
             <a href="https://your-sponsor-link-placeholder.com" target="_blank" rel="noopener noreferrer" class="group flex items-center justify-between w-full p-3.5 rounded-2xl bg-cyan-950/10 hover:bg-cyan-950/20 border border-slate-800 hover:border-cyan-500/20 transition-all duration-300">
                 <div class="flex items-center gap-3">
@@ -540,7 +540,8 @@
                 title.className = "text-2xl font-black tracking-tight text-emerald-400 mb-1";
                 desc.textContent = "No routing anomalies, TLS modifications, or diagnostic warnings found.";
                 
-                // Show Freemium Companion Shield Upgrade Offer
+                // Show Freemium Companion Shield Upgrade Offer (Disabled for now - keeping code for future integration)
+                /*
                 const isExtensionLinked = document.documentElement.hasAttribute('data-whonmywifi-extension-installed') && !new URLSearchParams(window.location.search).has('force-standalone');
                 if (!isExtensionLinked) {
                     mitigationCard.className = "mt-4 p-4 rounded-2xl bg-emerald-950/10 border border-emerald-500/20 text-left space-y-3 shadow-lg block";
@@ -553,6 +554,8 @@
                 } else {
                     mitigationCard.className = "hidden"; // Hide if premium extension is already linked
                 }
+                */
+                mitigationCard.className = "hidden";
             } else {
                 iconBox.className = "w-28 h-28 rounded-full bg-rose-500/10 border border-rose-500 flex items-center justify-center text-rose-500 shadow-[0_0_40px_rgba(239,68,68,0.2)]";
                 iconBox.innerHTML = `<svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
@@ -560,7 +563,8 @@
                 title.className = "text-2xl font-black tracking-tight text-rose-500 mb-1";
                 desc.textContent = "Diagnostic scan has flagged potential routing proxy or hardware anomalies.";
                 
-                // Show VPN Affiliate Threat Mitigation Card
+                // Show VPN Affiliate Threat Mitigation Card (Disabled for now - keeping code for future integration)
+                /*
                 mitigationCard.className = "mt-4 p-4 rounded-2xl bg-rose-950/20 border border-rose-500/20 text-left space-y-3 shadow-lg block";
                 mitigationBadge.textContent = "Critical Threat Shield";
                 mitigationBadge.className = "text-[9px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30 uppercase";
@@ -568,6 +572,8 @@
                 mitigationLink.textContent = "🔒 Secure Traffic with ProtonVPN (70% Off)";
                 mitigationLink.href = "https://your-vpn-affiliate-link-placeholder.com";
                 mitigationLink.className = "block w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs rounded-xl shadow-md transition-all text-center transform active:scale-95 cursor-pointer";
+                */
+                mitigationCard.className = "hidden";
             }
         }
     </script>
