@@ -371,6 +371,8 @@
             const zone = document.getElementById('anomaly-zone');
             zone.classList.add('hidden');
             zone.querySelector('ul').innerHTML = '';
+            delete zone.dataset.hasDanger;
+            delete zone.dataset.hasWarning;
 
             const isExtensionLinked = document.documentElement.hasAttribute('data-whonmywifi-extension-installed') && !new URLSearchParams(window.location.search).has('force-standalone');
 
@@ -398,12 +400,12 @@
                 runtimes.sort((a, b) => a - b);
                 const median = runtimes[Math.floor(runtimes.length / 2)];
                 
-                // Normal systems generate/encrypt in <0.2ms. Over 2.0ms (10x slower) indicates DOM intercept runtime hooks.
-                if (median > 2.0) {
-                    flagAnomaly(`Crypto Benchmark Latency Anomaly: Median handshake execution took ${median.toFixed(2)}ms (threshold: 2.00ms). Potential active DOM runtime hook.`);
+                // Normal systems generate/encrypt in <0.2ms. Over 7.0ms indicates potential DOM intercept runtime hooks or background timing mitigation.
+                if (median > 7.0) {
+                    flagAnomaly(`Crypto Benchmark Latency Anomaly: Median handshake execution took ${median.toFixed(2)}ms (threshold: 7.00ms). Potential active DOM runtime hook or browser timing mitigation.`, 'warning');
                 }
             } catch(e) {
-                flagAnomaly("Crypto Engine Exception: Core sandboxing variables altered or blocked.");
+                flagAnomaly("Crypto Engine Exception: Core sandboxing variables altered or blocked.", 'warning');
             }
 
             // 2. Query Companion Extension Telemetry if linked, otherwise fallback to local browser APIs
@@ -429,16 +431,16 @@
 
                     // Evaluate companion metrics
                     if (!telemetry.secureConnection) {
-                        flagAnomaly("Extension Security Alert: Connection is running over unencrypted channel (HTTP).");
+                        flagAnomaly("Extension Security Alert: Connection is running over unencrypted channel (HTTP).", 'danger');
                     }
                     if (telemetry.redirectCount > 0) {
-                        flagAnomaly(`Extension Telemetry Alert: Request encountered ${telemetry.redirectCount} redirection(s) - potential captive portal redirect or hijacking.`);
+                        flagAnomaly(`Extension Telemetry Alert: Request encountered ${telemetry.redirectCount} redirection(s) - potential captive portal redirect or hijacking.`, 'danger');
                     }
                     if (telemetry.handshakeDuration > 400) {
-                        flagAnomaly(`Extension Network Alert: Elevated connection handshake latency (${telemetry.handshakeDuration}ms). Possible active proxy routing latency.`);
+                        flagAnomaly(`Extension Network Alert: Elevated connection handshake latency (${telemetry.handshakeDuration}ms). Possible active proxy routing latency.`, 'warning');
                     }
                 } catch (err) {
-                    flagAnomaly("Extension Communication Failure: Linked core failed to respond to telemetry ping.");
+                    flagAnomaly("Extension Communication Failure: Linked core failed to respond to telemetry ping.", 'warning');
                 }
             } else {
                 // Standalone mode: fetch equivalent metrics directly via the browser context
@@ -452,16 +454,16 @@
 
                     // Evaluate local metrics directly
                     if (!telemetry.secureConnection) {
-                        flagAnomaly("Security Alert: Connection is running over unencrypted channel (HTTP).");
+                        flagAnomaly("Security Alert: Connection is running over unencrypted channel (HTTP).", 'danger');
                     }
                     if (telemetry.redirectCount > 0) {
-                        flagAnomaly(`Telemetry Alert: Request encountered ${telemetry.redirectCount} redirection(s) - potential captive portal redirect or hijacking.`);
+                        flagAnomaly(`Telemetry Alert: Request encountered ${telemetry.redirectCount} redirection(s) - potential captive portal redirect or hijacking.`, 'danger');
                     }
                     if (telemetry.handshakeDuration > 400) {
-                        flagAnomaly(`Network Alert: Elevated connection handshake latency (${telemetry.handshakeDuration}ms). Possible active proxy routing latency.`);
+                        flagAnomaly(`Network Alert: Elevated connection handshake latency (${telemetry.handshakeDuration}ms). Possible active proxy routing latency.`, 'warning');
                     }
                 } catch (err) {
-                    flagAnomaly("Telemetry Failure: Failed to retrieve browser performance metrics.");
+                    flagAnomaly("Telemetry Failure: Failed to retrieve browser performance metrics.", 'warning');
                 }
             }
 
@@ -494,7 +496,7 @@
             if (edgeData) {
                 document.getElementById('ip-display').textContent = edgeData.userIp || "Resolved Node";
                 if (edgeData.flags && edgeData.flags.length > 0) {
-                    edgeData.flags.forEach(f => flagAnomaly(f));
+                    edgeData.flags.forEach(f => flagAnomaly(f, 'danger'));
                 }
             } else {
                 document.getElementById('ip-display').textContent = "Offline Route Resolved";
@@ -506,7 +508,7 @@
                 document.getElementById('isp-display').textContent = ispName;
 
                 if (geoData.isProxy) {
-                    flagAnomaly("Network ISP Warning: Connection classified as active proxy/VPN address.");
+                    flagAnomaly("Network ISP Warning: Connection classified as active proxy/VPN address.", 'warning');
                 }
 
                 const ispLower = ispName.toLowerCase();
@@ -514,39 +516,70 @@
                 const isDatacenter = datacenterKeywords.some(keyword => ispLower.includes(keyword));
                 
                 if (isDatacenter) {
-                    flagAnomaly(`Routing originates from an enterprise data center (${ispName}) instead of a residential/local ISP.`);
+                    flagAnomaly(`Routing originates from an enterprise data center (${ispName}) instead of a residential/local ISP.`, 'warning');
                 }
             } else {
                 document.getElementById('isp-display').textContent = "Standard Network Operator";
             }
 
             // Determine and apply overall verdict
-            const hasAnomalies = !zone.classList.contains('hidden');
-            setVerdict(!hasAnomalies);
+            let verdict = 'safe';
+            if (zone.dataset.hasDanger === "true") {
+                verdict = 'danger';
+            } else if (zone.dataset.hasWarning === "true") {
+                verdict = 'warning';
+            }
+
+            // Style anomaly-zone container based on highest severity
+            if (verdict === 'danger') {
+                zone.className = "mt-4 p-4 rounded-xl bg-rose-950/20 border border-rose-900/60 text-left block";
+                zone.querySelector('h3').className = "text-xs font-bold text-rose-400 uppercase tracking-widest mb-2 flex items-center gap-1.5";
+            } else if (verdict === 'warning') {
+                zone.className = "mt-4 p-4 rounded-xl bg-amber-950/20 border border-amber-900/60 text-left block";
+                zone.querySelector('h3').className = "text-xs font-bold text-amber-400 uppercase tracking-widest mb-2 flex items-center gap-1.5";
+            } else {
+                zone.className = "hidden";
+            }
+
+            setVerdict(verdict);
         }
 
-        function flagAnomaly(msg) {
+        function flagAnomaly(msg, severity = 'warning') {
             const zone = document.getElementById('anomaly-zone');
-            zone.classList.remove('hidden');
             const li = document.createElement('li');
-            li.textContent = msg;
+            
+            if (severity === 'danger') {
+                li.innerHTML = `<span class="text-rose-400 font-bold">⚠️ CRITICAL:</span> ${msg}`;
+                li.className = "text-rose-305/90";
+                zone.dataset.hasDanger = "true";
+            } else {
+                li.innerHTML = `<span class="text-amber-400 font-bold">⚠️ WARNING:</span> ${msg}`;
+                li.className = "text-amber-305/80";
+                zone.dataset.hasWarning = "true";
+            }
+            
             zone.querySelector('ul').appendChild(li);
         }
 
-        function updateLogoVerdict(isSafe) {
+        function updateLogoVerdict(verdict) {
             const dot = document.getElementById('logo-dot');
             const wave1 = document.getElementById('logo-wave-1');
             const wave2 = document.getElementById('logo-wave-2');
             
             if (!dot || !wave1 || !wave2) return;
             
-            if (isSafe === null) {
+            if (verdict === null) {
                 const color = '#22d3ee';
                 dot.setAttribute('fill', color);
                 wave1.setAttribute('stroke', color);
                 wave2.setAttribute('stroke', color);
-            } else if (isSafe) {
+            } else if (verdict === 'safe') {
                 const color = '#10b981';
+                dot.setAttribute('fill', color);
+                wave1.setAttribute('stroke', color);
+                wave2.setAttribute('stroke', color);
+            } else if (verdict === 'warning') {
+                const color = '#f59e0b';
                 dot.setAttribute('fill', color);
                 wave1.setAttribute('stroke', color);
                 wave2.setAttribute('stroke', color);
@@ -558,57 +591,33 @@
             }
         }
 
-        function setVerdict(isSafe) {
-            updateLogoVerdict(isSafe); // Transition logo color based on overall verdict
+        function setVerdict(verdict) {
+            updateLogoVerdict(verdict); // Transition logo color based on overall verdict
             const iconBox = document.getElementById('status-icon-container');
             const title = document.getElementById('status-title');
             const desc = document.getElementById('status-desc');
-            
             const mitigationCard = document.getElementById('mitigation-card');
-            const mitigationText = document.getElementById('mitigation-text');
-            const mitigationBadge = document.getElementById('mitigation-price-badge');
-            const mitigationLink = document.getElementById('mitigation-link');
             
-            if (isSafe) {
+            if (verdict === 'safe') {
                 iconBox.className = "w-28 h-28 rounded-full bg-emerald-500/10 border border-emerald-500 flex items-center justify-center text-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.15)]";
                 iconBox.innerHTML = `<svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>`;
                 title.textContent = "CONNECTION CLEAN";
                 title.className = "text-2xl font-black tracking-tight text-emerald-400 mb-1";
                 desc.textContent = "No routing anomalies, TLS modifications, or diagnostic warnings found.";
-                
-                // Show Freemium Companion Shield Upgrade Offer (Disabled for now - keeping code for future integration)
-                /*
-                const isExtensionLinked = document.documentElement.hasAttribute('data-whonmywifi-extension-installed') && !new URLSearchParams(window.location.search).has('force-standalone');
-                if (!isExtensionLinked) {
-                    mitigationCard.className = "mt-4 p-4 rounded-2xl bg-emerald-950/10 border border-emerald-500/20 text-left space-y-3 shadow-lg block";
-                    mitigationBadge.textContent = "Premium Core";
-                    mitigationBadge.className = "text-[9px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 uppercase";
-                    mitigationText.innerHTML = "Standalone scan clean, but public routers remain insecure. Link the <strong>Whonmywifi Companion Shield</strong> for real-time, automated background protection.";
-                    mitigationLink.textContent = "📥 Enable Companion Shield ($1.99/mo)";
-                    mitigationLink.href = "https://whonmywifi.com/upgrade-companion-placeholder";
-                    mitigationLink.className = "block w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow-md transition-all text-center transform active:scale-95 cursor-pointer";
-                } else {
-                    mitigationCard.className = "hidden"; // Hide if premium extension is already linked
-                }
-                */
+                mitigationCard.className = "hidden";
+            } else if (verdict === 'warning') {
+                iconBox.className = "w-28 h-28 rounded-full bg-amber-500/10 border border-amber-500 flex items-center justify-center text-amber-500 shadow-[0_0_40px_rgba(245,158,11,0.2)]";
+                iconBox.innerHTML = `<svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+                title.textContent = "POTENTIAL ANOMALIES";
+                title.className = "text-2xl font-black tracking-tight text-amber-500 mb-1";
+                desc.textContent = "Minor network anomalies or proxy timing latency detected. The connection is likely safe, but proceed with awareness.";
                 mitigationCard.className = "hidden";
             } else {
                 iconBox.className = "w-28 h-28 rounded-full bg-rose-500/10 border border-rose-500 flex items-center justify-center text-rose-500 shadow-[0_0_40px_rgba(239,68,68,0.2)]";
                 iconBox.innerHTML = `<svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
                 title.textContent = "RED ALERT NOTICE";
                 title.className = "text-2xl font-black tracking-tight text-rose-500 mb-1";
-                desc.textContent = "Diagnostic scan has flagged potential routing proxy or hardware anomalies.";
-                
-                // Show VPN Affiliate Threat Mitigation Card (Disabled for now - keeping code for future integration)
-                /*
-                mitigationCard.className = "mt-4 p-4 rounded-2xl bg-rose-950/20 border border-rose-500/20 text-left space-y-3 shadow-lg block";
-                mitigationBadge.textContent = "Critical Threat Shield";
-                mitigationBadge.className = "text-[9px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30 uppercase";
-                mitigationText.innerHTML = "<strong>Security Warning:</strong> Potential active network routing or hardware timing anomalies detected! Protect your active session data now by encrypting your traffic.";
-                mitigationLink.textContent = "🔒 Secure Traffic with ProtonVPN (70% Off)";
-                mitigationLink.href = "https://your-vpn-affiliate-link-placeholder.com";
-                mitigationLink.className = "block w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs rounded-xl shadow-md transition-all text-center transform active:scale-95 cursor-pointer";
-                */
+                desc.textContent = "Diagnostic scan has flagged potential routing proxy or hijacking threats.";
                 mitigationCard.className = "hidden";
             }
         }

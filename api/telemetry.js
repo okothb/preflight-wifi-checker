@@ -21,7 +21,12 @@ module.exports = async (req, res) => {
     let flags = [];
 
     // Core Edge Proxy Detection (always runs, free and instant)
-    if (req.headers['via'] || req.headers['forwarded']) {
+    // Ignore trusted Vercel edge/routing proxy headers to prevent false positives
+    const viaHeader = req.headers['via'] || '';
+    const forwardedHeader = req.headers['forwarded'] || '';
+    const isVercelVia = viaHeader.toLowerCase().includes('vercel');
+
+    if ((viaHeader && !isVercelVia) || forwardedHeader) {
         status = "SUSPICIOUS";
         flags.push("Unexpected routing proxies injected into connection headers.");
     }
